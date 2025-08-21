@@ -2,42 +2,48 @@ pipeline {
     agent any
 
     environment {
-        // If using Docker Desktop on Windows, DOCKER_HOST is not needed.
-        // If using TCP, uncomment the line below:
-        // DOCKER_HOST = "tcp://host.docker.internal:2375"
+        // Define any environment variables here if needed
+        PHP_APP_PORT = "8000"
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                echo 'Checking out code...'
-                git branch: 'main', url: 'https://github.com/YeshaShah13/Plan-The-Expense.git', credentialsId: 'dockerhub'
+                echo "Checking out code..."
+                git branch: 'main', url: 'https://github.com/YeshaShah13/Plan-The-Expense.git'
             }
         }
 
-        stage('Build and Deploy Docker Containers') {
+        stage('Stop Existing Containers') {
             steps {
-                echo 'Stopping existing containers (if any)...'
-                bat 'docker-compose -f docker-compose.yml down'
-
-                echo 'Building and starting containers...'
-                bat 'docker-compose -f docker-compose.yml up -d --build'
+                echo "Stopping any existing containers..."
+                sh 'docker-compose -f docker-compose.yml down || true'
             }
         }
 
-        stage('Deployment Status') {
+        stage('Build & Deploy') {
             steps {
-                echo 'Containers should be running. Check with: docker ps'
+                echo "Building and starting containers..."
+                // Change the port mapping if needed
+                sh "sed -i 's/:[0-9]*:80/:${PHP_APP_PORT}:80/' docker-compose.yml || true"
+                sh 'docker-compose -f docker-compose.yml up -d --build'
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                echo "Listing running containers..."
+                sh 'docker ps'
             }
         }
     }
 
     post {
         success {
-            echo 'Pipeline finished successfully!'
+            echo "Deployment successful! PHP app should be running on port ${PHP_APP_PORT}"
         }
         failure {
-            echo 'Pipeline failed. Check console output for errors.'
+            echo "Deployment failed. Check the logs above for details."
         }
     }
 }
