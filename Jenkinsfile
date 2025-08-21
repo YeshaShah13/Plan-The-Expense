@@ -1,45 +1,62 @@
 pipeline {
     agent any
 
+    // Parameters for dynamic behavior
+    parameters {
+        string(name: 'PROJECT_NAME', defaultValue: 'php-docker-project', description: 'Name of your project')
+        string(name: 'PROJECT_PORT', defaultValue: '8000', description: 'Port for Apache server')
+        choice(name: 'ACTION', choices: ['Build & Deploy', 'Skip Build'], description: 'Choose action for this run')
+    }
+
     environment {
-        // Path to docker-compose in Jenkins container
-        DOCKER_COMPOSE_FILE = "${WORKSPACE}/docker-compose.yml"
+        COMPOSE_FILE = "${params.PROJECT_NAME}/docker-compose.yml"
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                echo "Checking out code from GitHub..."
-                git branch: 'main', url: 'https://github.com/YeshaShah13/Plan-The-Expense.git'
+                echo "Checking out project ${params.PROJECT_NAME}"
+                checkout scm
             }
         }
 
         stage('Build and Deploy') {
+            when {
+                expression { params.ACTION == 'Build & Deploy' }
+            }
             steps {
                 script {
-                    echo "Stopping existing containers if any..."
-                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} down || true"
+                    echo "Stopping existing containers (if any)..."
+                    sh "docker-compose -f ${env.COMPOSE_FILE} down || true"
 
-                    echo "Starting containers..."
-                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d --build"
+                    echo "Starting containers for ${params.PROJECT_NAME} on port ${params.PROJECT_PORT}..."
+                    sh """
+                    docker-compose -f ${env.COMPOSE_FILE} up -d --build
+                    """
                 }
+            }
+        }
+
+        stage('Skip Build') {
+            when {
+                expression { params.ACTION == 'Skip Build' }
+            }
+            steps {
+                echo "Build & Deploy skipped by user."
             }
         }
 
         stage('Deployment Status') {
             steps {
-                echo "Deployment completed!"
-                echo "Access your project at: http://localhost:8000"
+                echo "Pipeline finished for ${params.PROJECT_NAME} with action: ${params.ACTION}"
+                echo "Access project at: http://localhost:${params.PROJECT_PORT} (if deployed)"
             }
         }
     }
 
     post {
         always {
-            echo "Pipeline finished."
-        }
-        failure {
-            echo "Pipeline failed. Check logs for details."
+            echo "Pipeline run completed."
         }
     }
 }
