@@ -1,57 +1,43 @@
 pipeline {
     agent any
 
-    // Parameters
-    parameters {
-        string(name: 'PROJECT_PORT', defaultValue: '8000', description: 'Port for Apache server')
-        choice(name: 'ACTION', choices: ['Build & Deploy', 'Stop'], description: 'Choose action for this run')
-    }
-
     environment {
-        COMPOSE_FILE = "docker-compose.yml"
+        // If using Docker Desktop on Windows, DOCKER_HOST is not needed.
+        // If using TCP, uncomment the line below:
+        // DOCKER_HOST = "tcp://host.docker.internal:2375"
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                echo "Checking out code..."
-                checkout scm
+                echo 'Checking out code...'
+                git branch: 'main', url: 'https://github.com/YeshaShah13/Plan-The-Expense.git', credentialsId: 'dockerhub'
             }
         }
 
-        stage('Deploy Docker Containers') {
+        stage('Build and Deploy Docker Containers') {
             steps {
-                script {
-                    if (params.ACTION == 'Build & Deploy') {
-                        echo "Stopping existing containers (if any)..."
-                        sh "docker-compose -f ${env.COMPOSE_FILE} down || true"
+                echo 'Stopping existing containers (if any)...'
+                bat 'docker-compose -f docker-compose.yml down'
 
-                        echo "Starting containers on port ${params.PROJECT_PORT}..."
-                        sh """
-                        # Update port dynamically in docker-compose if needed
-                        sed -i 's/\\([0-9]*\\):80/${params.PROJECT_PORT}:80/' ${env.COMPOSE_FILE} || true
-
-                        docker-compose -f ${env.COMPOSE_FILE} up -d --build
-                        """
-                    } else if (params.ACTION == 'Stop') {
-                        echo "Stopping containers..."
-                        sh "docker-compose -f ${env.COMPOSE_FILE} down || true"
-                    }
-                }
+                echo 'Building and starting containers...'
+                bat 'docker-compose -f docker-compose.yml up -d --build'
             }
         }
 
         stage('Deployment Status') {
             steps {
-                echo "Deployment completed!"
-                echo "Access your project at: http://localhost:${params.PROJECT_PORT}"
+                echo 'Containers should be running. Check with: docker ps'
             }
         }
     }
 
     post {
-        always {
-            echo "Pipeline finished."
+        success {
+            echo 'Pipeline finished successfully!'
+        }
+        failure {
+            echo 'Pipeline failed. Check console output for errors.'
         }
     }
 }
