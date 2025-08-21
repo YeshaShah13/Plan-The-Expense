@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  php-apache:
+    image: php:8.1-apache
+    container_name: php-apache
+    ports:
+      - "8000:80"
+    volumes:
+      - ./src:/var/www/html
+    depends_on:
+      - mysql-db
+    networks:
+      - app-network
+
+  mysql-db:
+    image: mysql:5.7
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: dailyexpense
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
