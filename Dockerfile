@@ -16,3 +16,7 @@ WORKDIR /var/www/html
 
 # Install mysqli extension for MySQL
 RUN docker-php-ext-install mysqli
+
+# Fix permissions
+RUN chown -R www-data:www-data /var/www/html
+
