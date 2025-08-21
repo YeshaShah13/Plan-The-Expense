@@ -1,7 +1,12 @@
 <?php
-$con = mysqli_connect("localhost","root","","dailyexpense");
-if (mysqli_connect_errno())
-  {
-  echo "Failed to connect to MySQL: " . mysqli_connect_error() ." | Seems like you haven't created the DATABASE with an exact name";
-  }
+$host = "mysql-db";  // Docker service name
+$user = "root";
+$pass = "rootpassword";
+$db   = "dailyexpense";
+
+$con = mysqli_connect($host, $user, $pass, $db);
+if (!$con) {
+    die("Connection failed: " . mysqli_connect_error());
+}
+
 ?>
