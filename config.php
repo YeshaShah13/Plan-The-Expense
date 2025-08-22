@@ -1,10 +1,10 @@
 <?php
-// Hardened MySQL connection for XAMPP (fixes intermittent "server has gone away")
-$host = "127.0.0.1";   // Use IP to avoid DNS/socket issues
-$user = "root";        // XAMPP default user
-$pass = "";            // XAMPP default password is empty
+// Docker MySQL connection - use service name for inter-container communication
+$host = "db";          // Docker service name for database
+$user = "root";        // MySQL root user
+$pass = "root123";     // Password from docker-compose.yml
 $db   = "dailyexpense";
-$port = 3306;           // Explicit port
+$port = 3306;          // MySQL default port
 
 $mysqli = mysqli_init();
 
