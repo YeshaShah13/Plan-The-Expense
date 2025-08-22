@@ -33,10 +33,19 @@ RUN chown -R www-data:www-data /var/www/html && \
 # Ensure Apache runs as www-data
 RUN sed -i 's/export APACHE_RUN_USER=www-data/export APACHE_RUN_USER=www-data\nexport APACHE_RUN_GROUP=www-data/' /etc/apache2/envvars
 
-# Create a startup script to ensure proper permissions
-RUN echo '#!/bin/bash\nchown -R www-data:www-data /var/www/html\nfind /var/www/html -type d -exec chmod 755 {} \;\nfind /var/www/html -type f -exec chmod 644 {} \;\nexec apache2-foreground' > /usr/local/bin/start-apache.sh && \
+# Create a startup script to ensure proper permissions at runtime
+RUN echo '#!/bin/bash' > /usr/local/bin/start-apache.sh && \
+    echo 'echo "Setting up permissions..."' >> /usr/local/bin/start-apache.sh && \
+    echo 'chown -R www-data:www-data /var/www/html' >> /usr/local/bin/start-apache.sh && \
+    echo 'find /var/www/html -type d -exec chmod 755 {} \;' >> /usr/local/bin/start-apache.sh && \
+    echo 'find /var/www/html -type f -exec chmod 644 {} \;' >> /usr/local/bin/start-apache.sh && \
+    echo 'echo "Starting Apache..."' >> /usr/local/bin/start-apache.sh && \
+    echo 'exec apache2-foreground' >> /usr/local/bin/start-apache.sh && \
     chmod +x /usr/local/bin/start-apache.sh
 
-# Use the startup script
-CMD ["/usr/local/bin/start-apache.sh"]
+# Expose port 80
+EXPOSE 80
+
+# Use the startup script as the entry point
+ENTRYPOINT ["/usr/local/bin/start-apache.sh"]
 

@@ -38,10 +38,31 @@ pipeline {
 
         stage('Verify Deployment') {
             steps {
+                echo "Waiting for containers to be ready..."
+                sh 'sleep 10'
+                
                 echo "Listing running containers..."
                 sh 'docker ps'
+                
+                echo "Checking container logs..."
+                sh 'docker compose -f docker-compose.yml logs --tail=20 php || true'
+                
                 echo "Testing app availability..."
-                sh 'curl -f -I ${DEPLOY_URL}/index.php || echo "App not responding yet"'
+                sh '''
+                    for i in {1..10}; do
+                        echo "Attempt $i: Testing ${DEPLOY_URL}/"
+                        if curl -f -I ${DEPLOY_URL}/ 2>/dev/null; then
+                            echo "✅ App is responding!"
+                            break
+                        else
+                            echo "❌ App not responding, waiting..."
+                            sleep 5
+                        fi
+                    done
+                '''
+                
+                echo "Final test with index.php..."
+                sh 'curl -f -I ${DEPLOY_URL}/index.php || echo "❌ Index.php not accessible"'
             }
         }
     }
@@ -62,6 +83,9 @@ pipeline {
             echo "🔍 Debug info:"
             sh 'docker ps -a || true'
             sh 'docker compose -f docker-compose.yml logs --tail=50 || true'
+            echo "🔍 Testing direct container access:"
+            sh 'docker exec plantheexpense-php-1 ls -la /var/www/html/ || true'
+            sh 'docker exec plantheexpense-php-1 cat /var/log/apache2/error.log || true'
         }
     }
 }
