@@ -1,29 +1,29 @@
 version: '3.8'
 
 services:
-  php-apache:
-    image: php:8.1-apache
-    container_name: php-apache
+  php:
+    image: php:8.2-apache
+    container_name: php-app
     ports:
       - "8000:80"
     volumes:
-      - ./src:/var/www/html
+      - ./Plan-the-analysis:/var/www/html
     depends_on:
-      - mysql-db
-    networks:
-      - app-network
+      - db
 
-  mysql-db:
-    image: mysql:5.7
+  db:
+    image: mysql:8.0
     container_name: mysql-db
+    restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: root123
       MYSQL_DATABASE: dailyexpense
+      MYSQL_USER: user
+      MYSQL_PASSWORD: pass123
     ports:
       - "3306:3306"
-    networks:
-      - app-network
+    volumes:
+      - db_data:/var/lib/mysql
 
-networks:
-  app-network:
-    driver: bridge
+volumes:
+  db_data:

@@ -2,44 +2,48 @@ pipeline {
     agent any
 
     environment {
-        // Path to docker-compose in Jenkins container
-        DOCKER_COMPOSE_FILE = "${WORKSPACE}/docker-compose.yml"
+        // Define any environment variables here if needed
+        PHP_APP_PORT = "8000"
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                echo "Checking out code from GitHub..."
+                echo "Checking out code..."
                 git branch: 'main', url: 'https://github.com/YeshaShah13/Plan-The-Expense.git'
             }
         }
 
-        stage('Build and Deploy') {
+        stage('Stop Existing Containers') {
             steps {
-                script {
-                    echo "Stopping existing containers if any..."
-                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} down || true"
-
-                    echo "Starting containers..."
-                    sh "docker-compose -f ${DOCKER_COMPOSE_FILE} up -d --build"
-                }
+                echo "Stopping any existing containers..."
+                sh 'docker-compose -f docker-compose.yml down || true'
             }
         }
 
-        stage('Deployment Status') {
+        stage('Build & Deploy') {
             steps {
-                echo "Deployment completed!"
-                echo "Access your project at: http://localhost:8000"
+                echo "Building and starting containers..."
+                // Change the port mapping if needed
+                sh "sed -i 's/:[0-9]*:80/:${PHP_APP_PORT}:80/' docker-compose.yml || true"
+                sh 'docker-compose -f docker-compose.yml up -d --build'
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                echo "Listing running containers..."
+                sh 'docker ps'
             }
         }
     }
 
     post {
-        always {
-            echo "Pipeline finished."
+        success {
+            echo "Deployment successful! PHP app should be running on port ${PHP_APP_PORT}"
         }
         failure {
-            echo "Pipeline failed. Check logs for details."
+            echo "Deployment failed. Check the logs above for details."
         }
     }
 }
