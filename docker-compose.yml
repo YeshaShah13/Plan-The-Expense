@@ -27,13 +27,11 @@
 
 # volumes:
 #   db_data:
-version: '3.8'
-
 services:
   php:
     build: .
     ports:
-      - "8081:80"
+      - "${PHP_APP_PORT:-9000}:80"
     volumes:
       - .:/var/www/html
     depends_on:
