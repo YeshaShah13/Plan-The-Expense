@@ -2,11 +2,18 @@
 //     agent any
 
 //     environment {
-//         // Define any environment variables here if needed
-//         PHP_APP_PORT = "8000"
+//         PHP_APP_PORT = "8000" // compose should use "${PHP_APP_PORT:-8000}:80"
 //     }
 
 //     stages {
+//         stage('Docker Preflight') {
+//             steps {
+//                 echo "Checking Docker and Compose availability..."
+//                 sh 'docker info || (echo "Docker daemon not reachable" && exit 1)'
+//                 sh 'docker compose version || (echo "docker compose v2 not found" && exit 1)'
+//             }
+//         }
+
 //         stage('Checkout Code') {
 //             steps {
 //                 echo "Checking out code..."
@@ -17,16 +24,15 @@
 //         stage('Stop Existing Containers') {
 //             steps {
 //                 echo "Stopping any existing containers..."
-//                 sh 'docker-compose -f docker-compose.yml down || true'
+//                 sh 'docker compose -f docker-compose.yml down || true'
 //             }
 //         }
 
 //         stage('Build & Deploy') {
 //             steps {
 //                 echo "Building and starting containers..."
-//                 // Change the port mapping if needed
-//                 sh "sed -i 's/:[0-9]*:80/:${PHP_APP_PORT}:80/' docker-compose.yml || true"
-//                 sh 'docker-compose -f docker-compose.yml up -d --build'
+//                 // Ensure docker-compose.yml maps ports with: "${PHP_APP_PORT:-8000}:80"
+//                 sh 'docker compose -f docker-compose.yml up -d --build'
 //             }
 //         }
 
@@ -47,11 +53,13 @@
 //         }
 //     }
 // }
+
 pipeline {
     agent any
 
     environment {
-        PHP_APP_PORT = "8000" // compose should use "${PHP_APP_PORT:-8000}:80"
+        PHP_APP_PORT = "8000"                 // compose should use "${PHP_APP_PORT:-8000}:80"
+        COMPOSE_PROJECT_NAME = "${JOB_NAME}-${BUILD_NUMBER}"
     }
 
     stages {
@@ -73,14 +81,15 @@ pipeline {
         stage('Stop Existing Containers') {
             steps {
                 echo "Stopping any existing containers..."
-                sh 'docker compose -f docker-compose.yml down || true'
+                sh 'docker compose -f docker-compose.yml down --remove-orphans || true'
+                sh 'docker rm -f php-app mysql-db || true'
+                sh 'docker network prune -f || true'
             }
         }
 
         stage('Build & Deploy') {
             steps {
                 echo "Building and starting containers..."
-                // Ensure docker-compose.yml maps ports with: "${PHP_APP_PORT:-8000}:80"
                 sh 'docker compose -f docker-compose.yml up -d --build'
             }
         }
@@ -94,11 +103,7 @@ pipeline {
     }
 
     post {
-        success {
-            echo "Deployment successful! PHP app should be running on port ${PHP_APP_PORT}"
-        }
-        failure {
-            echo "Deployment failed. Check the logs above for details."
-        }
+        success { echo "Deployment successful! PHP app should be running on port ${PHP_APP_PORT}" }
+        failure { echo "Deployment failed. Check the logs above for details." }
     }
 }
