@@ -17,7 +17,26 @@ WORKDIR /var/www/html
 # Install mysqli extension for MySQL
 RUN docker-php-ext-install mysqli
 
-# Fix permissions - ensure www-data owns the files
+# Fix permissions - ensure www-data owns the files and set proper permissions
 RUN chown -R www-data:www-data /var/www/html && \
-    chmod -R 755 /var/www/html
+    find /var/www/html -type d -exec chmod 755 {} \; && \
+    find /var/www/html -type f -name "*.php" -exec chmod 644 {} \; && \
+    find /var/www/html -type f -name "*.css" -exec chmod 644 {} \; && \
+    find /var/www/html -type f -name "*.js" -exec chmod 644 {} \; && \
+    find /var/www/html -type f -name "*.html" -exec chmod 644 {} \; && \
+    find /var/www/html -type f -name "*.jpg" -exec chmod 644 {} \; && \
+    find /var/www/html -type f -name "*.png" -exec chmod 644 {} \; && \
+    find /var/www/html -type f -name "*.jpeg" -exec chmod 644 {} \; && \
+    [ -d "/var/www/html/uploads" ] && chmod -R 755 /var/www/html/uploads || true && \
+    [ -d "/var/www/html/Assets" ] && chmod -R 755 /var/www/html/Assets || true
+
+# Ensure Apache runs as www-data
+RUN sed -i 's/export APACHE_RUN_USER=www-data/export APACHE_RUN_USER=www-data\nexport APACHE_RUN_GROUP=www-data/' /etc/apache2/envvars
+
+# Create a startup script to ensure proper permissions
+RUN echo '#!/bin/bash\nchown -R www-data:www-data /var/www/html\nfind /var/www/html -type d -exec chmod 755 {} \;\nfind /var/www/html -type f -exec chmod 644 {} \;\nexec apache2-foreground' > /usr/local/bin/start-apache.sh && \
+    chmod +x /usr/local/bin/start-apache.sh
+
+# Use the startup script
+CMD ["/usr/local/bin/start-apache.sh"]
 
