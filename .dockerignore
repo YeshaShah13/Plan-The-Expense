@@ -1,0 +1,48 @@
+# Exclude VCS
+.git
+.gitignore
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# IDE/editor
+.vscode
+.idea
+*.iml
+
+# Logs & runtime
+*.log
+logs/
+storage/
+sessions/
+cache/
+
+# Composer & vendor (if added later)
+vendor/
+composer.lock
+composer.phar
+
+# Node tooling (if any)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment & secrets
+.env
+.env.*
+*.local
+
+# Tests/coverage/temp
+coverage/
+.phpunit.result.cache
+.tmp/
+
+# Uploads (exclude entirely from image build context)
+uploads/
+
+# Local build artifacts
+/dist/
+/build/
+
+

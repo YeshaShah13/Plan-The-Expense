@@ -1,0 +1,57 @@
+# OS junk
+.DS_Store
+Thumbs.db
+
+# IDE/editor
+.vscode/
+.idea/
+*.iml
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs & runtime files
+*.log
+logs/
+storage/
+sessions/
+cache/
+
+# Composer & vendor (if added later)
+vendor/
+composer.lock
+composer.phar
+
+# Node (if used for tooling)
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment & secrets
+.env
+.env.*
+*.local
+
+# PHP/coverage temp
+.phpunit.result.cache
+coverage/
+.tmp/
+
+# Uploads (keep default placeholder)
+uploads/*
+!uploads/default_profile.png
+!uploads/01 PROJECT INFO.txt
+
+# Build artifacts
+/dist/
+/build/
+
+# Docker local dirs
+.docker/
+
+# OS-specific
+Ehthumbs.db
+ehthumbs.db
+Icon?
