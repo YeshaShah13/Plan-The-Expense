@@ -7,14 +7,9 @@ COPY ./ /var/www/html/
 # Enable mod_rewrite if needed
 RUN a2enmod rewrite
 
-# Copy Apache config
+# Copy Apache config and enable it
 COPY apache-config.conf /etc/apache2/sites-available/000-default.conf
-# Enable the site configuration
 RUN a2ensite 000-default.conf
-# Disable default site to avoid conflicts
-RUN a2dissite 000-default
-# Reload Apache configuration
-RUN service apache2 reload
 
 # Set working directory
 WORKDIR /var/www/html
