@@ -33,7 +33,7 @@ services:
   php:
     image: php:8.2-apache
     ports:
-      - "9000:80"  # Changed from 8000:80
+      - "9000:80"
     volumes:
       - .:/var/www/html
     depends_on:
@@ -47,8 +47,7 @@ services:
       MYSQL_DATABASE: dailyexpense
       MYSQL_USER: user
       MYSQL_PASSWORD: pass123
-    ports:
-      - "3307:3306"  # Changed from 3306:3306 to avoid XAMPP conflict
+    # ports: removed - no need to expose MySQL to host
     volumes:
       - db_data:/var/lib/mysql
 

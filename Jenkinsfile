@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        PHP_APP_PORT = "8000"
+        PHP_APP_PORT = "9000"
         DEPLOY_URL = "http://localhost:${PHP_APP_PORT}"
     }
 
