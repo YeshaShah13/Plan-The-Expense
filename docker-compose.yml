@@ -31,9 +31,9 @@ version: '3.8'
 
 services:
   php:
-    image: php:8.2-apache
+    build: .
     ports:
-      - "9000:80"
+      - "8081:80"
     volumes:
       - .:/var/www/html
     depends_on:
