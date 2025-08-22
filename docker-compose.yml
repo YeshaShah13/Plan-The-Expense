@@ -33,7 +33,7 @@ services:
   php:
     image: php:8.2-apache
     ports:
-      - "8001:80"  # Changed from 8000:80
+      - "9000:80"  # Changed from 8000:80
     volumes:
       - .:/var/www/html
     depends_on:
