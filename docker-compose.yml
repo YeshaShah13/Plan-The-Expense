@@ -1,11 +1,39 @@
+# version: '3.8'
+
+# services:
+#   php:
+#     image: php:8.2-apache
+#     container_name: php-app
+#     ports:
+#       - "8000:80"
+#     volumes:
+#       - .:/var/www/html
+#     depends_on:
+#       - db
+
+#   db:
+#     image: mysql:8.0
+#     container_name: mysql-db
+#     restart: always
+#     environment:
+#       MYSQL_ROOT_PASSWORD: root123
+#       MYSQL_DATABASE: dailyexpense
+#       MYSQL_USER: user
+#       MYSQL_PASSWORD: pass123
+#     ports:
+#       - "3306:3306"
+#     volumes:
+#       - db_data:/var/lib/mysql
+
+# volumes:
+#   db_data:
 version: '3.8'
 
 services:
   php:
     image: php:8.2-apache
-    container_name: php-app
     ports:
-      - "8000:80"
+      - "8001:80"  # Changed from 8000:80
     volumes:
       - .:/var/www/html
     depends_on:
@@ -13,7 +41,6 @@ services:
 
   db:
     image: mysql:8.0
-    container_name: mysql-db
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root123
@@ -21,7 +48,7 @@ services:
       MYSQL_USER: user
       MYSQL_PASSWORD: pass123
     ports:
-      - "3306:3306"
+      - "3307:3306"  # Changed from 3306:3306 to avoid XAMPP conflict
     volumes:
       - db_data:/var/lib/mysql
 
