@@ -36,35 +36,51 @@ pipeline {
             }
         }
 
+        // 
         stage('Verify Deployment') {
-            steps {
-                echo "Waiting for containers to be ready..."
-                sh 'sleep 10'
-                
-                echo "Listing running containers..."
-                sh 'docker ps'
-                
-                echo "Checking container logs..."
-                sh 'docker compose -f docker-compose.yml logs --tail=20 php || true'
-                
-                echo "Testing app availability..."
-                sh '''
-                    for i in {1..10}; do
-                        echo "Attempt $i: Testing ${DEPLOY_URL}/"
-                        if curl -f -I ${DEPLOY_URL}/ 2>/dev/null; then
-                            echo "✅ App is responding!"
-                            break
-                        else
-                            echo "❌ App not responding, waiting..."
-                            sleep 5
-                        fi
-                    done
-                '''
-                
-                echo "Final test with index.php..."
-                sh 'curl -f -I ${DEPLOY_URL}/index.php || echo "❌ Index.php not accessible"'
+        steps {
+        echo "Waiting for services to fully initialize..."
+        sh 'sleep 45'  // Increased from 10 to 45 seconds
+        
+        echo "Testing database connectivity first..."
+        sh '''
+            docker compose exec -T db mysqladmin ping -h localhost -u root -proot123 || {
+                echo "Database not ready"
+                docker compose logs db
+                exit 1
             }
+        '''
+        
+        echo "Testing PHP database connection..."
+        sh '''
+                docker compose exec -T php php -r "
+                include 'config.php';
+             if (isset(\$con)) {
+                echo 'PHP can connect to database successfully';
+             } else {
+                echo 'PHP cannot connect to database';
+                exit 1;
+                }
+            "
+            '''
+        
+            echo "Testing application..."
+            sh '''
+            for i in {1..10}; do
+                 if curl -f -s ${DEPLOY_URL}/index.php > /dev/null; then
+                    echo "✅ Application is responding!"
+                    break
+                 fi
+                 if [ $i -eq 10 ]; then
+                    echo "❌ Application failed to respond"
+                    exit 1
+                 fi
+                 echo "Attempt $i failed, retrying in 5 seconds..."
+                 sleep 5
+                 done
+            '''
         }
+    }
     }
 
     post {
