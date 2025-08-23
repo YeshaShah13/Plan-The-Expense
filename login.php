@@ -2,12 +2,26 @@
 require('config.php');
 session_start();
 $errormsg = "";
+
+// Hardcoded user credentials for easy testing
+$HARDCODED_EMAIL = "admin@expense.com";
+$HARDCODED_PASSWORD = "password"; // This will be MD5 hashed
+
 if (isset($_POST['email'])) {
 
   $email = stripslashes($_REQUEST['email']);
   $email = mysqli_real_escape_string($con, $email);
   $password = stripslashes($_REQUEST['password']);
   $password = mysqli_real_escape_string($con, $password);
+  
+  // Check if it's the hardcoded user first
+  if ($email === $HARDCODED_EMAIL && md5($password) === md5($HARDCODED_PASSWORD)) {
+    $_SESSION['email'] = $email;
+    header("Location: index.php");
+    exit();
+  }
+  
+  // If not hardcoded user, check database
   $query = "SELECT * FROM `users` WHERE email='$email'and password='" . md5($password) . "'";
   $result = mysqli_query($con, $query) or die(mysqli_error($con));
   $rows = mysqli_num_rows($result);
@@ -179,6 +193,16 @@ if (isset($_POST['email'])) {
             </div>
           </div>
           <?php endif; ?>
+          
+          <!-- Hardcoded User Info for Testing -->
+          <div class="mb-6 bg-blue-100 dark:bg-blue-900/50 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 px-4 py-3 rounded-lg relative" role="alert">
+            <div class="flex items-center">
+              <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zm-1 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"></path>
+              </svg>
+              <span><strong>Test Account:</strong> Email: <code>admin@expense.com</code> | Password: <code>password</code></span>
+            </div>
+          </div>
           
           <div class="mb-6">
             <label class="block text-gray-700 dark:text-gray-300 text-sm font-medium mb-2" for="email">

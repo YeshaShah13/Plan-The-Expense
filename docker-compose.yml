@@ -32,8 +32,8 @@ services:
     build: .
     ports:
       - "${PHP_APP_PORT:-9000}:80"
-    # volumes:
-    #   - .:/var/www/html
+    volumes:
+      - .:/var/www/html
     depends_on:
       - db
 
@@ -48,6 +48,7 @@ services:
     # ports: removed - no need to expose MySQL to host
     volumes:
       - db_data:/var/lib/mysql
+      - ./DATABASE FILE/dailyexpense.sql:/docker-entrypoint-initdb.d/dailyexpense.sql
 
 volumes:
   db_data:

@@ -21,9 +21,10 @@ if ($result->num_rows > 0) {
     $userprofile="uploads/".$row["profile_path"];
   }
 } else {
-    $userid="GHX1Y2";
-    $username ="Jhon Doe";
-    $useremail="mailid@domain.com";
-    $userprofile="Uploads/default_profile.png";
+    // Fallback to hardcoded user if database query fails
+    $userid="1";
+    $username ="Admin User";
+    $useremail="admin@expense.com";
+    $userprofile="uploads/default_profile.png";
 }
 ?>
