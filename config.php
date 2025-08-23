@@ -1,26 +1,32 @@
 <?php
-// Docker MySQL connection - use service name for inter-container communication
-$host = "db";          // Docker service name for database
-$user = "root";        // MySQL root user
+// Docker MySQL connection
+$host = "db";          // Docker service name
+$user = "root";        // MySQL root user  
 $pass = "root123";     // Password from docker-compose.yml
 $db   = "dailyexpense";
-$port = 3306;          // MySQL default port
+$port = 3306;
 
 $mysqli = mysqli_init();
 
-// Reasonable timeouts (seconds)
+// Connection timeouts
 mysqli_options($mysqli, MYSQLI_OPT_CONNECT_TIMEOUT, 5);
 mysqli_options($mysqli, MYSQLI_OPT_READ_TIMEOUT, 10);
 
-// Establish connection
-if (!mysqli_real_connect($mysqli, $host, $user, $pass, $db, $port)) {
-    die("Connection failed: " . mysqli_connect_error());
+// Establish connection with retry logic
+$max_retries = 5;
+for ($i = 0; $i < $max_retries; $i++) {
+    if (mysqli_real_connect($mysqli, $host, $user, $pass, $db, $port)) {
+        mysqli_set_charset($mysqli, 'utf8mb4');
+        break;
+    }
+    
+    if ($i === $max_retries - 1) {
+        die("Connection failed after $max_retries attempts: " . mysqli_connect_error());
+    }
+    
+    sleep(2); // Wait before retry
 }
-
-// Ensure UTF-8
-mysqli_set_charset($mysqli, 'utf8mb4');
 
 // Back-compat for existing code expecting $con
 $con = $mysqli;
-
 ?>
