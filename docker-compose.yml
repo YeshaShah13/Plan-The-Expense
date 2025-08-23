@@ -32,8 +32,7 @@ services:
     build: .
     ports:
       - "${PHP_APP_PORT:-9000}:80"
-    volumes:
-      - .:/var/www/html
+  
     depends_on:
       - db
 
