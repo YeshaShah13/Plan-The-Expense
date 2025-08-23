@@ -38,49 +38,49 @@ pipeline {
 
         // 
         stage('Verify Deployment') {
-        steps {
-        echo "Waiting for services to fully initialize..."
-        sh 'sleep 45'  // Increased from 10 to 45 seconds
+            steps {
+                echo "Waiting for services to fully initialize..."
+                sh 'sleep 45'  // Increased from 10 to 45 seconds
         
-        echo "Testing database connectivity first..."
-        sh '''
-            docker compose exec -T db mysqladmin ping -h localhost -u root -proot123 || {
-                echo "Database not ready"
-                docker compose logs db
-                exit 1
-            }
-        '''
-        
-        echo "Testing PHP database connection..."
-        sh '''
-                docker compose exec -T php php -r "
-                include 'config.php';
-             if (isset(\$con)) {
-                echo 'PHP can connect to database successfully';
-             } else {
-                echo 'PHP cannot connect to database';
-                exit 1;
-                }
-            "
-            '''
-        
-            echo "Testing application..."
-            sh '''
-            for i in {1..10}; do
-                 if curl -f -s ${DEPLOY_URL}/index.php > /dev/null; then
-                    echo "✅ Application is responding!"
-                    break
-                 fi
-                 if [ $i -eq 10 ]; then
-                    echo "❌ Application failed to respond"
+                echo "Testing database connectivity first..."
+                sh '''
+                    docker compose exec -T db mysqladmin ping -h localhost -u root -proot123 || {
+                    echo "Database not ready"
+                    docker compose logs db
                     exit 1
-                 fi
-                 echo "Attempt $i failed, retrying in 5 seconds..."
-                 sleep 5
-                 done
-            '''
+                    }
+                '''
+        
+             echo "Testing PHP database connection..."
+                sh '''
+                    docker compose exec -T php php -r "
+                    include 'config.php';
+                    if (isset(\$con)) {
+                        echo 'PHP can connect to database successfully';
+                    } else {
+                    echo 'PHP cannot connect to database';
+                    exit 1;
+                    }
+                    "
+                '''
+        
+                echo "Testing application..."
+                sh '''
+                    for i in {1..10}; do
+                    if curl -f -s ${DEPLOY_URL}/index.php > /dev/null; then
+                        echo "✅ Application is responding!"
+                        break
+                    fi
+                    if [ $i -eq 10 ]; then
+                        echo "❌ Application failed to respond"
+                        exit 1
+                    fi
+                    echo "Attempt $i failed, retrying in 5 seconds..."
+                    sleep 5
+                    done
+                '''
+            }
         }
-    }
     }
 
     post {
